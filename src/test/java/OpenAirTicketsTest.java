@@ -3,8 +3,6 @@ import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
-import static junit.framework.Assert.assertTrue;
-
 import junit.framework.TestCase;
 
 import java.time.Month;
@@ -19,40 +17,80 @@ import java.util.Locale;
  */
 public class OpenAirTicketsTest extends TestCase {
 
+    private static final int TIMERforThreadSleep = 0;
+    private final int TIMERforWebDriverWait = 3;
+
     public void testMain() throws InterruptedException {
 
         WebDriver driver = new FirefoxDriver();
 
-        workingWithFirstPage_PrimaryInformation(driver);
-        workingWithSecondAndThirdPages_ChooseVariant(driver);
-
-        //workingWithFourthPage_contactInformation
-
-
-        WebElement stateEdit = new WebDriverWait(driver,15).until(ExpectedConditions.presenceOfElementLocated(By.xpath(".//*[@class='passengers-form onl_js-mainCont anc_js-mainCont state_edit']")));
-        WebElement sex = stateEdit.findElement(By.xpath("//*[@id='passengerData0.passengerTitle']"));
-        sex.click();
-
-
-        //this block holds browser as open after actions
-        try {
-            driver.wait(10);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        //rarely before 4th page of contacts information windows appears with message "Information is old, make new request"
+        boolean flag = true;
+        while(flag) {
+            workingWithFirstPage_PrimaryInformation(driver);
+            workingWithSecondAndThirdPages_ChooseVariant(driver);
+            try {
+                WebElement error = new WebDriverWait(driver,TIMERforWebDriverWait).until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(".timeExpiredCntBtn")));
+                error.click();
+            }
+            catch (TimeoutException e)
+            {
+                flag = false;
+            }
         }
 
-        driver.quit();
+        workingWithFourthPage_contactInformation(driver);
+
+        workingWithFifthPage_payment(driver);
+
+        Thread.sleep(2000);
+        driver.close();
 
     }
 
+    private void workingWithFifthPage_payment(WebDriver driver) {
+        new WebDriverWait(driver,TIMERforWebDriverWait).until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("#paymentDetails\\.creditCardDetails\\.type > option[value='VISA']"))).click();
+        driver.findElement(By.id("paymentDetails.creditCardDetails.number")).sendKeys("4554123443214567");
+        driver.findElement(By.id("ed2")).sendKeys("2017");
+        driver.findElement(By.id("paymentDetails.creditCardDetails.securityCode")).sendKeys("621");
+        assertTrue(driver.findElement(By.cssSelector("#btnBuyTicket .airButton")).isDisplayed());
+    }
+
+    private void workingWithFourthPage_contactInformation(WebDriver driver) {
+        WebElement sex = new WebDriverWait(driver,TIMERforWebDriverWait).until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("#passengerData0\\.passengerTitle")));
+        sex.click();
+        sex = sex.findElement(By.cssSelector(" option[value='Mr']"));
+        sex.click();
+
+        WebElement lastName = driver.findElement(By.cssSelector("#passengerData0\\.lastName"));
+        lastName.sendKeys("Ivanov");
+        WebElement firstName = driver.findElement(By.cssSelector("#passengerData0\\.firstName"));
+        firstName.sendKeys("Ivan");
+        //birth date
+        driver.findElement(By.cssSelector("#pd0")).findElement(By.cssSelector(" option[value='7']")).click();
+        driver.findElement(By.cssSelector("#pm0 > option[value='5']")).click();
+        driver.findElement(By.cssSelector("#py0")).sendKeys("1976");
+        //other information
+        String nationalityOfPassenger = driver.findElement(By.cssSelector("#passengerData0\\.nationality > option[selected='selected']")).getText();
+        assertEquals("Passenger Nationality is RF", "Российская Федерация", nationalityOfPassenger);
+        driver.findElement(By.id("passengerData0.documentNumber")).sendKeys("4006 123456");
+        driver.findElement(By.cssSelector("#pey0")).sendKeys("2018");
+        //contact information, next table
+        driver.findElement(By.id("contactDetails.address.city")).sendKeys("Saint-Petersburg");
+        driver.findElement(By.id("cdmpn2")).sendKeys("9626968704");
+        driver.findElement(By.id("contactDetails.emailAddress")).sendKeys("ivan@gmail.com");
+        //button "Next"
+        driver.findElement(By.className("airButton")).click();
+    }
+
     private void workingWithSecondAndThirdPages_ChooseVariant(WebDriver driver) throws InterruptedException {
-        //sometimes the Service on third page says "The flight unavailable, plese ..."
+        //sometimes the Service on third page says "The flight unavailable, please ..."
         boolean flag = true;
         while(flag) {
             workingWithSecondPage(driver);
             try
             {
-                WebElement error = new WebDriverWait(driver,10).until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("#content > div:nth-child(3) > a:nth-child(1)")));
+                WebElement error = new WebDriverWait(driver,TIMERforWebDriverWait).until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("#content > div:nth-child(3) > a:nth-child(1)")));
                 error.click();
             }
             catch(TimeoutException e)
@@ -68,7 +106,7 @@ public class OpenAirTicketsTest extends TestCase {
 
     private void workingWithSecondPage(WebDriver driver) throws InterruptedException {
         //choose random price-info
-        List<WebElement> listPriceInfo = new WebDriverWait(driver,10).until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.cssSelector(".price-info")));
+        List<WebElement> listPriceInfo = new WebDriverWait(driver,TIMERforWebDriverWait).until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.cssSelector(".price-info")));
 
         //driver.findElements(By.cssSelector(".price-info"));
         WebElement priceInfo = listPriceInfo.get((int)(Math.random() * (listPriceInfo.size()-1)));
@@ -83,7 +121,7 @@ public class OpenAirTicketsTest extends TestCase {
         WebElement radioFrom = listRadioDirectionBack.get((int)(Math.random() * (listRadioDirectionBack.size()-1)));
         radioFrom.click();
 
-        Thread.sleep(2000);
+        Thread.sleep(TIMERforThreadSleep);
 
         //click button Reservation
         //todo why next line doesnt work?
@@ -128,7 +166,6 @@ public class OpenAirTicketsTest extends TestCase {
         //test for current month and correct day of month
         //direction TO
         WebElement dateMonthDirectionTo = driver.findElement(By.cssSelector(".flight_selector_middle_departure > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > div:nth-child(1)"));
-        //.flight_selector_middle_departure > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > div:nth-child(1)
         assertTrue(getMonth().equals(dateMonthDirectionTo.getText()));
         WebElement dayOfMonthDirectionTo = driver.findElement(By.cssSelector(".flight_selector_middle_departure > div:nth-child(2) > div:nth-child(2) > div:nth-child(1) > div:nth-child(1)"));
         assertTrue(Integer.parseInt(dayOfMonthDirectionTo.getText()) >= getDayOfMonth());
@@ -143,8 +180,7 @@ public class OpenAirTicketsTest extends TestCase {
         WebElement directionTo = driver.findElement(By.cssSelector("#to"));
         directionTo.click();
         directionTo.sendKeys(nameOfAirPort);
-        WebElement dropListDirectionTo = new WebDriverWait(driver,10).until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("#autocomplete > ul:nth-child(1) > li:nth-child(1) > b:nth-child(1) > div:nth-child(1)")));
-        //#autocomplete > ul:nth-child(1) > li:nth-child(1) > b:nth-child(1) > div:nth-child(1)
+        WebElement dropListDirectionTo = new WebDriverWait(driver,TIMERforWebDriverWait).until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("#autocomplete > ul:nth-child(1) > li:nth-child(1) > b:nth-child(1) > div:nth-child(1)")));
         dropListDirectionTo.click();
         assertEquals("City destination was set correct", "MOW - Москва - все аэропорты",directionTo.getAttribute("value"));
 
@@ -152,12 +188,9 @@ public class OpenAirTicketsTest extends TestCase {
 
     private void experimentWIthRadioButtomOnlyOneSideFlightOrToAndBack(WebDriver driver) throws InterruptedException {
         WebElement flightToAsTry = driver.findElement(By.xpath(".//*[@id='1']/div[2]"));
-        //todo what's wrong with this query to class? WebElement flightToAsTry = driver.findElement(By.xpath(".firepath-matching-node"));
-        //.flight_selector_top_contain > div:nth-child(3) > div:nth-child(2) > div:nth-child(1)
-        //.firepath-matching-node
         flightToAsTry.click();
 
-        Thread.sleep(2000);
+        Thread.sleep(TIMERforThreadSleep);
 
         WebElement flightToAndBack = driver.findElement(By.cssSelector(".flight_selector_top_contain > div:nth-child(2) > div:nth-child(3)"));
         //.flight_selector_top_contain > div:nth-child(2) > div:nth-child(3)
@@ -169,11 +202,11 @@ public class OpenAirTicketsTest extends TestCase {
     private void setDirectionFrom(WebDriver driver, String nameOfAirPort) {
         //wait until page is loading
         //WebElement directionFrom = (new WebDriverWait(driver, 10)).until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("#from")));
-        WebElement directionFrom = (new WebDriverWait(driver, 10)).until(ExpectedConditions.presenceOfElementLocated(By.id("from")));
+        WebElement directionFrom = (new WebDriverWait(driver, TIMERforWebDriverWait)).until(ExpectedConditions.presenceOfElementLocated(By.id("from")));
         directionFrom.click();
         directionFrom.sendKeys(nameOfAirPort);
         //todo experemnt with independense form of CSS selector
-        WebElement dropListDirectionFrom = new WebDriverWait(driver,10).until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("#autocomplete > ul:nth-child(1) > li:nth-child(1) > b:nth-child(1) > div:nth-child(1)")));
+        WebElement dropListDirectionFrom = new WebDriverWait(driver,TIMERforWebDriverWait).until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("#autocomplete > ul:nth-child(1) > li:nth-child(1) > b:nth-child(1) > div:nth-child(1)")));
         dropListDirectionFrom.click();
         assertEquals("City departure was set correct", "LED - Санкт-Петербург  - все аэропорты",directionFrom.getAttribute("value"));
     }
