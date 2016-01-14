@@ -1,5 +1,9 @@
+package PureSelenium;
+
+import org.junit.Test;
 import org.openqa.selenium.*;
 import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
@@ -12,14 +16,17 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Locale;
 
+import org.junit.Assert;
+
 /**
  * Created by Superuser on 14.12.2015.
  */
-public class OpenAirTicketsTest extends TestCase {
+public class PureSelenium{
 
     private static final int TIMERforThreadSleep = 0;
     private final int TIMERforWebDriverWait = 3;
 
+    @Test
     public void testMain() throws InterruptedException {
 
         WebDriver driver = new FirefoxDriver();
@@ -53,7 +60,7 @@ public class OpenAirTicketsTest extends TestCase {
         driver.findElement(By.id("paymentDetails.creditCardDetails.number")).sendKeys("4554123443214567");
         driver.findElement(By.id("ed2")).sendKeys("2017");
         driver.findElement(By.id("paymentDetails.creditCardDetails.securityCode")).sendKeys("621");
-        assertTrue(driver.findElement(By.cssSelector("#btnBuyTicket .airButton")).isDisplayed());
+        Assert.assertTrue(driver.findElement(By.cssSelector("#btnBuyTicket .airButton")).isDisplayed());
     }
 
     private void workingWithFourthPage_contactInformation(WebDriver driver) {
@@ -72,12 +79,12 @@ public class OpenAirTicketsTest extends TestCase {
         driver.findElement(By.cssSelector("#py0")).sendKeys("1976");
         //other information
         String nationalityOfPassenger = driver.findElement(By.cssSelector("#passengerData0\\.nationality > option[selected='selected']")).getText();
-        assertEquals("Passenger Nationality is RF", "Российская Федерация", nationalityOfPassenger);
+        Assert.assertEquals("Passenger Nationality is RF", "Российская Федерация", nationalityOfPassenger);
         driver.findElement(By.id("passengerData0.documentNumber")).sendKeys("4006 123456");
         driver.findElement(By.cssSelector("#pey0")).sendKeys("2018");
         //contact information, next table
         driver.findElement(By.id("contactDetails.address.city")).sendKeys("Saint-Petersburg");
-        driver.findElement(By.id("cdmpn2")).sendKeys("9626968704");
+        driver.findElement(By.id("cdmpn2")).sendKeys("9056968704");
         driver.findElement(By.id("contactDetails.emailAddress")).sendKeys("ivan@gmail.com");
         //button "Next"
         driver.findElement(By.className("airButton")).click();
@@ -152,28 +159,28 @@ public class OpenAirTicketsTest extends TestCase {
 
     private void checkAmountOfAdult(WebDriver driver, int amount) {
         int amountOfAdult = Integer.parseInt(driver.findElement(By.cssSelector("div.mainPageOverride:nth-child(1) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > div:nth-child(1)")).getText());
-        assertTrue("Amount of adult is set by default to 1", amountOfAdult == amount);
+        Assert.assertTrue("Amount of adult is set by default to 1", amountOfAdult == amount);
     }
 
     private void checkAmountOfChildren(WebDriver driver, int amount) {
         WebElement amountOfChildren = driver.findElement(By.cssSelector("div.mainPageOverride:nth-child(1) > div:nth-child(1) > div:nth-child(1) > div:nth-child(2) > div:nth-child(2) > div:nth-child(1) > div:nth-child(1)"));
-        assertTrue("Amount of Children is set by default to 0", Integer.parseInt(amountOfChildren.getText())==amount);
+        Assert.assertTrue("Amount of Children is set by default to 0", Integer.parseInt(amountOfChildren.getText())==amount);
         WebElement amountOfBabies = driver.findElement(By.xpath(".//*[@id='INF']/div/div"));
-        assertTrue("Amount of Babies is set by default to 0", Integer.parseInt(amountOfBabies.getText())==amount);
+        Assert.assertTrue("Amount of Babies is set by default to 0", Integer.parseInt(amountOfBabies.getText())==amount);
     }
 
     private void checkMonthAndDay(WebDriver driver) {
         //test for current month and correct day of month
         //direction TO
         WebElement dateMonthDirectionTo = driver.findElement(By.cssSelector(".flight_selector_middle_departure > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > div:nth-child(1)"));
-        assertTrue(getMonth().equals(dateMonthDirectionTo.getText()));
+        Assert.assertTrue(getMonth().equals(dateMonthDirectionTo.getText()));
         WebElement dayOfMonthDirectionTo = driver.findElement(By.cssSelector(".flight_selector_middle_departure > div:nth-child(2) > div:nth-child(2) > div:nth-child(1) > div:nth-child(1)"));
-        assertTrue(Integer.parseInt(dayOfMonthDirectionTo.getText()) >= getDayOfMonth());
+        Assert.assertTrue(Integer.parseInt(dayOfMonthDirectionTo.getText()) >= getDayOfMonth());
         //direction BACK
         WebElement dateMonthDirectionBack = driver.findElement(By.cssSelector(".flight_selector_middle_return > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > div:nth-child(1)"));
-        assertTrue(getMonth().equals(dateMonthDirectionBack.getText()));
+        Assert.assertTrue(getMonth().equals(dateMonthDirectionBack.getText()));
         WebElement dayOfMonthDirectionBack = driver.findElement(By.cssSelector(".flight_selector_middle_return > div:nth-child(2) > div:nth-child(2) > div:nth-child(1) > div:nth-child(1)"));
-        assertTrue(Integer.parseInt(dayOfMonthDirectionBack.getText()) > Integer.parseInt(dayOfMonthDirectionTo.getText()));
+        Assert.assertTrue(Integer.parseInt(dayOfMonthDirectionBack.getText()) > Integer.parseInt(dayOfMonthDirectionTo.getText()));
     }
 
     private void setDirectionTo(WebDriver driver, String nameOfAirPort) {
@@ -182,7 +189,7 @@ public class OpenAirTicketsTest extends TestCase {
         directionTo.sendKeys(nameOfAirPort);
         WebElement dropListDirectionTo = new WebDriverWait(driver,TIMERforWebDriverWait).until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("#autocomplete > ul:nth-child(1) > li:nth-child(1) > b:nth-child(1) > div:nth-child(1)")));
         dropListDirectionTo.click();
-        assertEquals("City destination was set correct", "MOW - Москва - все аэропорты",directionTo.getAttribute("value"));
+        Assert.assertEquals("City destination was set correct", "MOW - Москва - все аэропорты",directionTo.getAttribute("value"));
 
     }
 
@@ -208,7 +215,7 @@ public class OpenAirTicketsTest extends TestCase {
         //todo experemnt with independense form of CSS selector
         WebElement dropListDirectionFrom = new WebDriverWait(driver,TIMERforWebDriverWait).until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("#autocomplete > ul:nth-child(1) > li:nth-child(1) > b:nth-child(1) > div:nth-child(1)")));
         dropListDirectionFrom.click();
-        assertEquals("City departure was set correct", "LED - Санкт-Петербург  - все аэропорты",directionFrom.getAttribute("value"));
+        Assert.assertEquals("City departure was set correct", "LED - Санкт-Петербург  - все аэропорты",directionFrom.getAttribute("value"));
     }
 
     private String getMonth()
