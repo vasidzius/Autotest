@@ -1,4 +1,4 @@
-package HTMLElements;
+package HTMLElementsWorkExample;
 
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
@@ -12,7 +12,7 @@ import java.util.List;
 public class SearchResults extends HtmlElement {
 
     @SuppressWarnings("unused")
-    @FindBy(className="content__left")
+    @FindBy(className="serp-item__title")
     private List<WebElement> searchItems;
 
     public List<WebElement> getSearchItems() {
